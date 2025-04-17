@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "apple_weatherkit"
+name = "apple_maps"
 version = "1.1.3"
 description = "Python client for Apple WeatherKit API"
-authors = ["TJ Horner <me@tjhorner.com>"]
+authors = ["Ryan Morash <ryan@morash.me>"]
 readme = "README.md"
-repository = "https://github.com/tjhorner/python-weatherkit"
+repository = "https://github.com/ryanmorash/python-applemaps"
 license = "MIT"
 
 [tool.poetry.dependencies]
