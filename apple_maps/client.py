@@ -42,43 +42,20 @@ class AppleMapsApiClient:
         self._session = session
         self._client = None # lazy loaded
 
-    async def get_weather_data(
+    async def get_travel_time(
         self,
-        lat: float,
-        lon: float,
-        data_sets: list[DataSetType] = [DataSetType.CURRENT_WEATHER],
-        hourly_start: datetime | None = None,
-        hourly_end: datetime | None = None,
-        lang: str = "en-US"
+        originLat: float,
+        originLon: float,
+        destLat: float,
+        destLon: float,
+        transportType: str,
     ) -> Any:
-        hourly_start = hourly_start or datetime.now(tz=UTC)
-        hourly_end = hourly_end or datetime.now(tz=UTC) + timedelta(days=1)
-        if hourly_start.tzinfo:
-            hourly_start = hourly_start.astimezone(tz=UTC).replace(tzinfo=None)
-        if hourly_end.tzinfo:
-            hourly_end = hourly_end.astimezone(tz=UTC).replace(tzinfo=None)
 
         token = self._generate_jwt()
-        query = urlencode(
-            {
-                "dataSets": ",".join(data_sets),
-                "hourlyStart": f"{hourly_start.isoformat()}Z",
-                "hourlyEnd": f"{hourly_end.isoformat()}Z",
-            }
-        )
 
         return await self._api_wrapper(
             method="get",
-            url=f"https://weatherkit.apple.com/api/v1/weather/{lang}/{lat}/{lon}?{query}",
-            headers={"Authorization": f"Bearer {token}"},
-        )
-
-    async def get_availability(self, lat: float, lon: float) -> list[DataSetType]:
-        """Determine availability of different weather data sets."""
-        token = self._generate_jwt()
-        return await self._api_wrapper(
-            method="get",
-            url=f"https://weatherkit.apple.com/api/v1/availability/{lat}/{lon}",
+            url=f"https://maps-api.apple.com/v1/etas?origin={originLat},{originLon}&destination={destLat},{destLon}&transportType={transportType}",
             headers={"Authorization": f"Bearer {token}"},
         )
 
