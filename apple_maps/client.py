@@ -7,7 +7,6 @@ from typing import Any
 from aiohttp_retry import RetryClient, ExponentialRetry
 
 import aiohttp
-import async_timeout
 import jwt
 
 
@@ -120,7 +119,7 @@ class AppleMapsApiClient:
             self._client = RetryClient(retry_options=retry_options, client_session=self._session)
 
         try:
-            async with async_timeout.timeout(20):
+            async with asyncio.timeout(20):
                 response = await self._client.request(
                     method=method,
                     url=url,
