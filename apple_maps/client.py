@@ -14,19 +14,19 @@ import jwt
 from . import DataSetType
 
 
-class WeatherKitApiClientError(Exception):
+class AppleMapsApiClientError(Exception):
     """Exception to indicate a general API error."""
 
 
-class WeatherKitApiClientCommunicationError(WeatherKitApiClientError):
+class AppleMapsApiClientCommunicationError(AppleMapsApiClientError):
     """Exception to indicate a communication error."""
 
 
-class WeatherKitApiClientAuthenticationError(WeatherKitApiClientError):
+class AppleMapsApiClientAuthenticationError(AppleMapsApiClientError):
     """Exception to indicate an authentication error."""
 
 
-class WeatherKitApiClient:
+class AppleMapsApiClient:
     def __init__(
         self,
         key_id: str,
@@ -126,24 +126,24 @@ class WeatherKitApiClient:
 
                 if response.status in (401, 403):
                     body = await response.text()
-                    raise WeatherKitApiClientAuthenticationError(
+                    raise AppleMapsApiClientAuthenticationError(
                         f"Invalid credentials: {body}",
                     )
 
                 response.raise_for_status()
                 return await response.json()
 
-        except WeatherKitApiClientAuthenticationError as exception:
+        except AppleMapsApiClientAuthenticationError as exception:
             raise exception
         except asyncio.TimeoutError as exception:
-            raise WeatherKitApiClientCommunicationError(
+            raise AppleMapsApiClientCommunicationError(
                 f"Timeout error fetching information: {exception}",
             ) from exception
         except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise WeatherKitApiClientCommunicationError(
+            raise AppleMapsApiClientCommunicationError(
                 f"Error fetching information: {exception}",
             ) from exception
         except Exception as exception:  # pylint: disable=broad-except
-            raise WeatherKitApiClientError(
+            raise AppleMapsApiClientError(
                 f"An unexpected error occurred: {exception}"
             ) from exception
