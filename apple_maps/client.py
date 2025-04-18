@@ -4,14 +4,11 @@ import asyncio
 import socket
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from urllib.parse import urlencode
 from aiohttp_retry import RetryClient, ExponentialRetry
 
 import aiohttp
 import async_timeout
 import jwt
-
-from . import DataSetType
 
 
 class AppleMapsApiClientError(Exception):
@@ -41,6 +38,8 @@ class AppleMapsApiClient:
         self._key_pem = key_pem
         self._session = session
         self._client = None # lazy loaded
+        self._access_token = None
+        self._token_expires_at = None
 
     async def get_travel_time(
         self,
@@ -51,13 +50,42 @@ class AppleMapsApiClient:
         transportType: str,
     ) -> Any:
 
-        token = self._generate_jwt()
+        token = self._get_valid_access_token()
 
         return await self._api_wrapper(
             method="get",
             url=f"https://maps-api.apple.com/v1/etas?origin={originLat},{originLon}&destination={destLat},{destLon}&transportType={transportType}",
             headers={"Authorization": f"Bearer {token}"},
         )
+
+    async def get_maps_access_token(self) -> dict:
+        """Get a maps access token using JWT authentication."""
+        token = self._generate_jwt()
+        
+        return await self._api_wrapper(
+            method="post",
+            url="https://maps-api.apple.com/v1/token",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data={"grant_type": "client_credentials"}
+        )
+    
+    def _is_token_valid(self) -> bool:
+        """Check if the current access token is valid and not expired."""
+        if not self._access_token or not self._token_expires_at:
+            return False
+        # Add 30 second buffer before expiration
+        return datetime.now(tz=UTC) < (self._token_expires_at - timedelta(seconds=30))
+    
+    async def _get_valid_access_token(self) -> str:
+        """Get a valid access token, refreshing if necessary."""
+        if not self._is_token_valid():
+            token_response = await self.get_maps_access_token()
+            self._access_token = token_response["access_token"]
+            self._token_expires_at = datetime.now(tz=UTC) + timedelta(seconds=token_response["expires_in"])
+        return self._access_token
 
     def _generate_jwt(self) -> str:
         return jwt.encode(
