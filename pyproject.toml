@@ -29,4 +29,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
+aioresponses = "^0.7.8"
 
